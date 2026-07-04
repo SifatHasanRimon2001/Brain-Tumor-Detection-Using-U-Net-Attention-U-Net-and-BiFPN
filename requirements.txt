@@ -1,23 +1,23 @@
-# Core ML / Deep Learning
-torch==2.0.1+cu118     # CUDA 11.8 build
-torchvision==0.15.2+cu118
-torchaudio==2.0.2+cu118
---extra-index-url https://download.pytorch.org/whl/cu118
+# ── Core ML / Deep Learning ───────────────────────────────────────────────
+# Install PyTorch separately (see README.md):
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
-# Image processing
+# ── Image Processing ──────────────────────────────────────────────────────
 opencv-python
 albumentations
-albumentations[imgaug]   # extra augmentations
 Pillow
-imageio
 
-# Utilities
+# ── Numerics & Utilities ──────────────────────────────────────────────────
 numpy
 tqdm
 scikit-learn
+scipy
+pandas
 
-# Visualization & reporting
+# ── Visualization ─────────────────────────────────────────────────────────
 matplotlib
 seaborn
 
-# Argument parsing (already in stdlib, no need to install argparse)
+# ── Optional ──────────────────────────────────────────────────────────────
+jupyter
+ipykernel

@@ -1,2 +1,0 @@
-epoch,train_loss,train_acc,train_precision,train_recall,train_f1,train_dice,train_iou,test_loss,test_acc,test_precision,test_recall,test_f1,test_dice,test_iou,confusion_matrix
-0,0,,,,,,,0,0.9686046511627907,0.9693792447882297,0.9680915375774107,0.9685621011130429,0,0.7187015206934562,

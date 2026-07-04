@@ -1,7 +1,7 @@
-"""Standard U-Net architecture for segmentation + classification.
+"""Attention U-Net — U-Net with additive attention gates on skip connections.
 
-Based on the original U-Net paper with batch normalisation and
-a classification head attached to the bottleneck.
+Based on "Attention U-Net: Learning Where to Look for the Pancreas"
+(Oktay et al., 2018).
 """
 
 from __future__ import annotations
@@ -9,20 +9,20 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from src.models.components import DoubleConv
+from src.models.components import AttentionBlock, DoubleConv
 
 
-class UNet(nn.Module):
-    """U-Net with an optional classification head.
+class AttentionUNet(nn.Module):
+    """U-Net augmented with attention gates on skip connections.
 
     Parameters
     ----------
     in_ch : int
-        Number of input channels (default 3 for RGB).
+        Number of input channels (default 3).
     num_classes : int
         Number of segmentation output channels (1 for binary).
     num_cls_labels : int
-        Number of classification labels (4 for BRISC tumour types).
+        Number of classification labels.
     """
 
     def __init__(
@@ -44,6 +44,12 @@ class UNet(nn.Module):
         self.upsample = nn.Upsample(
             scale_factor=2, mode="bilinear", align_corners=True
         )
+
+        # ── Attention gates ────────────────────────────────────────
+        self.att4 = AttentionBlock(1024, 512, 512)
+        self.att3 = AttentionBlock(512, 256, 256)
+        self.att2 = AttentionBlock(256, 128, 128)
+        self.att1 = AttentionBlock(128, 64, 64)
 
         # ── Decoder ────────────────────────────────────────────────
         self.dconv_up4 = DoubleConv(1024 + 512, 512)
@@ -72,21 +78,21 @@ class UNet(nn.Module):
 
         bottleneck = self.bottleneck(x)
 
-        # Classification logits (from bottleneck)
+        # Classification
         cls_logits = self.cls_head(self.avgpool(bottleneck).flatten(1))
 
-        # Decoder with skip connections
+        # Decoder with attention-gated skip connections
         x = self.upsample(bottleneck)
-        x = self.dconv_up4(torch.cat([x, conv4], dim=1))
+        x = self.dconv_up4(torch.cat([x, self.att4(x, conv4)], dim=1))
 
         x = self.upsample(x)
-        x = self.dconv_up3(torch.cat([x, conv3], dim=1))
+        x = self.dconv_up3(torch.cat([x, self.att3(x, conv3)], dim=1))
 
         x = self.upsample(x)
-        x = self.dconv_up2(torch.cat([x, conv2], dim=1))
+        x = self.dconv_up2(torch.cat([x, self.att2(x, conv2)], dim=1))
 
         x = self.upsample(x)
-        x = self.dconv_up1(torch.cat([x, conv1], dim=1))
+        x = self.dconv_up1(torch.cat([x, self.att1(x, conv1)], dim=1))
 
         seg_out = self.seg_head(x)
         return seg_out, cls_logits

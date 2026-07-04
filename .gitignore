@@ -1,25 +1,36 @@
-# Ignore image files inside brisc2025 dataset
-brisc2025/**/*.jpg
-brisc2025/**/*.jpeg
-brisc2025/**/*.png
-brisc2025/**/*.gif
-brisc2025/**/*.bmp
-brisc2025/**/*.tiff
-brisc2025/**/*.webp
-
-# Ignore entire outputs folder (all subfolders and files)
-outputs/**/*.jpg
-outputs/**/*.jpeg
-outputs/**/*.png
-outputs/**/*.gif
-outputs/**/*.bmp
-outputs/**/*.tiff
-outputs/**/*.webp
-
-# Ignore checkpoints and Python cache files
-*.ckpt
-*.pyc
-
-# Ignore cache folders
+# ── Python ─────────────────────────────────────────────────────────────────
 __pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
 .mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ── Virtual environment ───────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── IDE ───────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Ignore project data and outputs ───────────────────────────────────────
+brisc2025/
+outputs/
+reports/
+results/
+runs/
+
+# ── Checkpoints ───────────────────────────────────────────────────────────
+*.ckpt
+
+# ── OS ────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
