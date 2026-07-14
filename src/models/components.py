@@ -1,19 +1,13 @@
 """Reusable neural network building blocks.
-
 - ``DoubleConv`` — two (Conv → BN → ReLU) stacked
 - ``AttentionBlock`` — additive attention gate used by Attention U-Net
 """
-
 from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-
 class DoubleConv(nn.Module):
     """(Conv2d → BN → ReLU) × 2 with same padding."""
-
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -24,14 +18,10 @@ class DoubleConv(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
         )
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
-
-
 class AttentionBlock(nn.Module):
     """Additive attention gate for Attention U-Net skip connections."""
-
     def __init__(self, f_g: int, f_l: int, f_int: int) -> None:
         super().__init__()
         self.w_g = nn.Sequential(
@@ -48,7 +38,6 @@ class AttentionBlock(nn.Module):
             nn.Sigmoid(),
         )
         self.relu = nn.ReLU(inplace=True)
-
     def forward(self, g: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
         g1 = self.w_g(g)
         x1 = self.w_x(x)

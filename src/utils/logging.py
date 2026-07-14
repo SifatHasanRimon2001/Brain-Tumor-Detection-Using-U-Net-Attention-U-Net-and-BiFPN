@@ -1,15 +1,10 @@
 """Logging utilities.
-
 Provides a single ``get_logger()`` function so all modules emit
 structured, consistent log messages.
 """
-
 from __future__ import annotations
-
 import logging
 import sys
-
-
 def get_logger(name: str = __name__, level: int = logging.INFO) -> logging.Logger:
     """Return a pre-configured logger with a simple console handler."""
     logger = logging.getLogger(name)

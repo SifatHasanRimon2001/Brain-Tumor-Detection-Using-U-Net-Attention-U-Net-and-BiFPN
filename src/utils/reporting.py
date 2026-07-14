@@ -1,24 +1,16 @@
 """Experiment reporting — CSV logging, confusion-matrix figures, summaries.
-
 Refactored from the original ``report_utils.py`` with improved structure.
 """
-
 from __future__ import annotations
-
 import csv
 import os
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay
-
 matplotlib.use("Agg")  # non-interactive backend
-
-
 class ReportManager:
     """Logs training / inference metrics to CSV and saves figures.
-
     Parameters
     ----------
     root_dir : str
@@ -30,7 +22,6 @@ class ReportManager:
     class_labels : list[str] | None
         Optional class names for confusion-matrix plots.
     """
-
     def __init__(
         self,
         root_dir: str = "reports",
@@ -42,23 +33,17 @@ class ReportManager:
         self.model_name = model_name
         self.task = task
         self.class_labels = class_labels
-
         self.report_dir = os.path.join(root_dir, model_name, task)
         os.makedirs(self.report_dir, exist_ok=True)
-
         self.csv_path = os.path.join(self.report_dir, "log.csv")
         self.final_csv_path = os.path.join(self.report_dir, "final_results.csv")
         self.summary_csv_path = os.path.join(root_dir, "summary.csv")
-
         self._init_csv()
         self._init_summary()
-
     # ── Initialisation ──────────────────────────────────────────────
-
     def _init_csv(self) -> None:
         if not os.path.isfile(self.csv_path):
             self._write_csv(self.csv_path, self._header())
-
     def _init_summary(self) -> None:
         if not os.path.isfile(self.summary_csv_path):
             header = [
@@ -72,7 +57,6 @@ class ReportManager:
             ]
             with open(self.summary_csv_path, mode="w", newline="") as f:
                 csv.writer(f).writerow(header)
-
     @staticmethod
     def _header() -> list[str]:
         return [
@@ -85,14 +69,11 @@ class ReportManager:
             "test_f1", "test_dice", "test_iou",
             "confusion_matrix",
         ]
-
     @staticmethod
-    def _write_csv(path: str, row: list) -> None:
+    def _write_csv(path: str, row: list[str | int | float]) -> None:
         with open(path, mode="a", newline="") as f:
             csv.writer(f).writerow(row)
-
     # ── Logging ─────────────────────────────────────────────────────
-
     def log_epoch(
         self,
         epoch: int,
@@ -107,7 +88,6 @@ class ReportManager:
         if confusion_matrix is not None:
             cm_str = np.array2string(confusion_matrix, separator=", ")
             self.save_confusion_matrix(confusion_matrix, epoch)
-
         row = [
             epoch,
             train_loss,
@@ -126,35 +106,29 @@ class ReportManager:
             test_metrics.get("iou", ""),
             cm_str,
         ]
-
         # Append to per-model log
         self._write_csv(self.csv_path, row)
-
-        # Overwrite final_results with the latest row
-        self._write_csv(self.final_csv_path, self._header())
-        self._write_csv(self.final_csv_path, row)
-
+        # Overwrite final_results with header + latest row
+        with open(self.final_csv_path, mode="w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(self._header())
+            writer.writerow(row)
         # Update summary
         self._update_summary(epoch, row)
-
     # ── Summary management ──────────────────────────────────────────
-
-    def _update_summary(self, epoch: int, row: list) -> None:
+    def _update_summary(self, epoch: int, row: list[str | int | float]) -> None:
         new_entry = [self.model_name, self.task, row[0], *row[1:-1]]
-
         rows: list[list[str]] = []
         if os.path.isfile(self.summary_csv_path):
-            with open(self.summary_csv_path, mode="r") as f:
+            with open(self.summary_csv_path) as f:
                 reader = list(csv.reader(f))
                 rows = reader[1:]  # skip header
-
         # Replace existing entry for this (model, task) or append
         rows = [
             r for r in rows
             if not (r[0] == self.model_name and r[1] == self.task)
         ]
         rows.append(list(map(str, new_entry)))
-
         header = [
             "model", "task", "epoch",
             "train_loss", "train_acc", "train_precision", "train_recall",
@@ -166,9 +140,7 @@ class ReportManager:
             writer = csv.writer(f)
             writer.writerow(header)
             writer.writerows(rows)
-
     # ── Confusion matrix figure ─────────────────────────────────────
-
     def save_confusion_matrix(
         self,
         cm: np.ndarray,

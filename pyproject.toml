@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "brisc-tumor"
+version = "1.0.0"
+description = "Brain Tumor Segmentation & Classification using U-Net, Attention U-Net, and BiFPN"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Sifat Hasan Rimon"},
+    {name = "Emdadul Hq Iram"},
+]
+keywords = ["brain-tumor", "segmentation", "classification", "u-net", "attention-u-net", "bifpn", "mri"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "opencv-python>=4.8.0",
+    "albumentations>=1.3.0",
+    "numpy>=1.24.0",
+    "tqdm>=4.65.0",
+    "scikit-learn>=1.3.0",
+    "scipy>=1.10.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "Pillow>=9.5.0",
+]
+[project.optional-dependencies]
+dev = [
+    "jupyter",
+    "ipykernel",
+    "ruff>=0.8.0",
+    "mypy",
+    "pytest>=7.0.0",
+    "pre-commit>=3.0.0",
+]
+tracking = [
+    "wandb>=0.16.0",
+]
+all = [
+    "brisc-tumor[dev,tracking]",
+]
+[tool.setuptools.packages.find]
+include = ["src", "src.*"]
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501", "N812"]
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+[tool.pytest.ini_options]
+testpaths = ["tests"]

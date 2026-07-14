@@ -1,13 +1,10 @@
 """Evaluation metrics for segmentation and classification.
-
 Provides:
 - Dice coefficient, IoU (segmentation)
 - Accuracy, Precision, Recall, F1, AUC-ROC, Sensitivity, Specificity (classification)
 - Per-class breakdowns
 """
-
 from __future__ import annotations
-
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -20,13 +17,11 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.preprocessing import label_binarize
-
-
+from src.utils.logging import get_logger
+logger = get_logger(__name__)
 # ══════════════════════════════════════════════════════════════════════════
 # Segmentation metrics
 # ══════════════════════════════════════════════════════════════════════════
-
-
 def dice_coefficient(
     pred: torch.Tensor,
     target: torch.Tensor,
@@ -52,8 +47,6 @@ def dice_coefficient(
         inter = torch.sum(pred_binary * target_binary)
         union = torch.sum(pred_binary) + torch.sum(target_binary)
         return float(((2.0 * inter + eps) / (union + eps)).item())
-
-
 def iou_score(
     pred: torch.Tensor,
     target: torch.Tensor,
@@ -78,17 +71,11 @@ def iou_score(
         inter = torch.sum(pred_binary * target_binary)
         union = torch.sum(pred_binary) + torch.sum(target_binary) - inter
         return float(((inter + eps) / (union + eps)).item())
-
-
 # ══════════════════════════════════════════════════════════════════════════
 # Classification metrics
 # ══════════════════════════════════════════════════════════════════════════
-
-
 def _to_numpy(x: torch.Tensor) -> np.ndarray:
     return x.cpu().numpy()
-
-
 def classification_metrics(
     pred_logits_or_labels: torch.Tensor,
     target: torch.Tensor,
@@ -106,8 +93,6 @@ def classification_metrics(
         "recall": float(recall_score(target_np, preds, average=average, zero_division=0)),
         "f1": float(f1_score(target_np, preds, average=average, zero_division=0)),
     }
-
-
 def per_class_metrics(
     pred_logits_or_labels: torch.Tensor,
     target: torch.Tensor,
@@ -125,38 +110,30 @@ def per_class_metrics(
         "recall_per_class": list(recall_score(target_np, preds, labels=all_labels, average=None, zero_division=0)),
         "f1_per_class": list(f1_score(target_np, preds, labels=all_labels, average=None, zero_division=0)),
     }
-
-
 def auc_roc_metrics(
     pred_logits: torch.Tensor,
     target: torch.Tensor,
     num_classes: int,
-) -> dict:
+) -> dict[str, object]:
     """Compute AUC-ROC (macro and per-class).
-
     Returns dict with roc_auc, roc_auc_per_class, fpr, tpr dicts.
     Requires raw logits (not argmaxed labels).
     """
     target_np = _to_numpy(target)
     probs = F.softmax(pred_logits, dim=1).cpu().numpy()
     target_bin = label_binarize(target_np, classes=list(range(num_classes)))
-
     fpr: dict[int, np.ndarray] = {}
     tpr: dict[int, np.ndarray] = {}
     roc_auc_per_class: list[float] = []
-
     for i in range(num_classes):
         fpr[i], tpr[i], _ = roc_curve(target_bin[:, i], probs[:, i])
         roc_auc_per_class.append(float(auc(fpr[i], tpr[i])))
-
     return {
         "roc_auc": float(np.mean(roc_auc_per_class)),
         "roc_auc_per_class": roc_auc_per_class,
         "fpr": fpr,
         "tpr": tpr,
     }
-
-
 def sensitivity_specificity(
     pred_logits_or_labels: torch.Tensor,
     target: torch.Tensor,
@@ -168,7 +145,6 @@ def sensitivity_specificity(
     else:
         preds = pred_logits_or_labels.cpu().numpy()
     target_np = target.cpu().numpy()
-
     sens_list: list[float] = []
     spec_list: list[float] = []
     for c in range(num_classes):
@@ -178,20 +154,17 @@ def sensitivity_specificity(
         fp = float(np.sum((preds == c) & (target_np != c)))
         sens_list.append(tp / (tp + fn) if (tp + fn) > 0 else 0.0)
         spec_list.append(tn / (tn + fp) if (tn + fp) > 0 else 0.0)
-
     return {
         "sensitivity_per_class": sens_list,
         "specificity_per_class": spec_list,
     }
-
-
 def compute_all_cls_metrics(
     pred_logits: torch.Tensor,
     target: torch.Tensor,
     num_classes: int,
-) -> dict:
+) -> dict[str, object]:
     """Convenience: compute all classification metrics in one call."""
-    metrics: dict = classification_metrics(pred_logits, target)
+    metrics: dict[str, object] = classification_metrics(pred_logits, target)
     metrics.update(per_class_metrics(pred_logits, target, num_classes))
     metrics.update(sensitivity_specificity(pred_logits, target, num_classes))
     unique_labels = target.unique()
@@ -203,28 +176,27 @@ def compute_all_cls_metrics(
         metrics["fpr"] = {}
         metrics["tpr"] = {}
     return metrics
-
-
-def print_metrics(task: str, metrics: dict) -> None:
+def print_metrics(task: str, metrics: dict[str, float]) -> None:
     """Pretty-print metrics relevant to *task*."""
     if task == "seg":
-        print(f"  Dice: {metrics.get('dice', 0):.4f}  | IoU: {metrics.get('iou', 0):.4f}")
+        logger.info("  Dice: %.4f  | IoU: %.4f", metrics.get("dice", 0), metrics.get("iou", 0))
     elif task == "cls":
-        print(
-            f"  Acc: {metrics.get('acc', 0):.4f}  "
-            f"| Prec: {metrics.get('precision', 0):.4f}  "
-            f"| Recall: {metrics.get('recall', 0):.4f}  "
-            f"| F1: {metrics.get('f1', 0):.4f}  "
-            f"| AUC-ROC: {metrics.get('roc_auc', 0):.4f}"
+        logger.info(
+            "  Acc: %.4f  | Prec: %.4f  | Recall: %.4f  | F1: %.4f  | AUC-ROC: %.4f",
+            metrics.get("acc", 0),
+            metrics.get("precision", 0),
+            metrics.get("recall", 0),
+            metrics.get("f1", 0),
+            metrics.get("roc_auc", 0),
         )
     elif task == "joint":
-        print("[JOINT] Metrics:")
+        logger.info("[JOINT] Metrics:")
         seg_m = {k: v for k, v in metrics.items() if k in ("dice", "iou")}
         cls_m = {
             k: v for k, v in metrics.items()
-            if isinstance(v, (int, float)) and k not in ("dice", "iou", "loss")
+            if isinstance(v, int | float) and k not in ("dice", "iou", "loss")
         }
-        print("--- Segmentation ---")
+        logger.info("--- Segmentation ---")
         print_metrics("seg", seg_m)
-        print("--- Classification ---")
+        logger.info("--- Classification ---")
         print_metrics("cls", cls_m)

@@ -1,5 +1,4 @@
 """Comprehensive graph generation for all metrics.
-
 Generates and saves plots for:
 1. Training & validation loss curves
 2. Metric curves over epochs (acc, precision, recall, f1, dice, iou)
@@ -8,36 +7,23 @@ Generates and saves plots for:
 5. Sensitivity/Specificity per class
 6. Combined metrics overview figure (radar or bar)
 7. Final inference metrics comparison
-
 All figures are saved to the report directory for each model/task.
 """
-
 from __future__ import annotations
-
 import os
-from typing import Any
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-
+from src.config import CLASS_MAP
 matplotlib.use("Agg")
-
 # ── Style ─────────────────────────────────────────────────────────────────
-
-LABELS_CLS = ["Glioma", "Meningioma", "No Tumor", "Pituitary"]
+LABELS_CLS: list[str] = [name.replace("_", " ").title() for name in CLASS_MAP]
 COLORS = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-
 def _ensure_dir(path: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 1. Loss curves
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_loss_curves(
     train_losses: list[float],
     val_losses: list[float],
@@ -58,13 +44,9 @@ def plot_loss_curves(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 2. Metric curves over epochs
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_metric_curves(
     history: dict[str, list[float]],
     save_path: str,
@@ -76,17 +58,14 @@ def plot_metric_curves(
     if not history or not any(history.values()):
         return  # nothing to plot
     fig, ax = plt.subplots(figsize=(10, 6))
-
     keys = metrics_to_plot or [k for k in history if k != "loss"]
     first_val = next((v for v in history.values() if v), [])
     epochs = range(1, len(first_val) + 1) if first_val else []
-
     for i, key in enumerate(keys):
         values = history.get(key, [])
         if values:
             ax.plot(epochs, values, "o-", color=COLORS[i % len(COLORS)],
                     label=key.replace("_", " ").title(), linewidth=2)
-
     ax.set_xlabel("Epoch", fontsize=13)
     ax.set_ylabel("Score", fontsize=13)
     ax.set_title(title, fontsize=15, fontweight="bold")
@@ -96,8 +75,6 @@ def plot_metric_curves(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 def plot_seg_metric_curves(
     history: dict[str, list[float]],
     save_path: str,
@@ -108,8 +85,6 @@ def plot_seg_metric_curves(
         metrics_to_plot=["dice", "iou"],
         title="Segmentation Metrics (Dice & IoU)",
     )
-
-
 def plot_cls_metric_curves(
     history: dict[str, list[float]],
     save_path: str,
@@ -120,13 +95,9 @@ def plot_cls_metric_curves(
         metrics_to_plot=["acc", "precision", "recall", "f1"],
         title="Classification Metrics (Acc, Prec, Recall, F1)",
     )
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 3. ROC curves
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_roc_curves(
     fpr: dict[int, np.ndarray],
     tpr: dict[int, np.ndarray],
@@ -138,13 +109,11 @@ def plot_roc_curves(
     _ensure_dir(save_path)
     fig, ax = plt.subplots(figsize=(8, 7))
     labels = class_labels or [f"Class {i}" for i in range(len(roc_auc_per_class))]
-
-    for i, (cls_label, auc_val) in enumerate(zip(labels, roc_auc_per_class)):
+    for i, (cls_label, auc_val) in enumerate(zip(labels, roc_auc_per_class, strict=False)):
         ax.plot(
             fpr[i], tpr[i], linewidth=2,
             label=f"{cls_label} (AUC = {auc_val:.3f})",
         )
-
     ax.plot([0, 1], [0, 1], "k--", linewidth=1, alpha=0.5, label="Random")
     ax.set_xlabel("False Positive Rate", fontsize=13)
     ax.set_ylabel("True Positive Rate", fontsize=13)
@@ -156,13 +125,9 @@ def plot_roc_curves(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 4. Per-class bar charts
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_per_class_bars(
     precision_per_class: list[float] | None,
     recall_per_class: list[float] | None,
@@ -180,16 +145,13 @@ def plot_per_class_bars(
     n = len(labels)
     x = np.arange(n)
     width = 0.25
-
     fig, ax = plt.subplots(figsize=(10, 6))
-
     if precision_per_class:
         ax.bar(x - width, precision_per_class, width, label="Precision", alpha=0.85)
     if recall_per_class:
         ax.bar(x, recall_per_class, width, label="Recall", alpha=0.85)
     if f1_per_class:
         ax.bar(x + width, f1_per_class, width, label="F1-Score", alpha=0.85)
-
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=11)
     ax.set_ylabel("Score", fontsize=13)
@@ -200,8 +162,6 @@ def plot_per_class_bars(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 def plot_sensitivity_specificity_bars(
     sensitivity_per_class: list[float],
     specificity_per_class: list[float],
@@ -214,11 +174,9 @@ def plot_sensitivity_specificity_bars(
     n = len(labels)
     x = np.arange(n)
     width = 0.35
-
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.bar(x - width / 2, sensitivity_per_class, width, label="Sensitivity", alpha=0.85)
     ax.bar(x + width / 2, specificity_per_class, width, label="Specificity", alpha=0.85)
-
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=11)
     ax.set_ylabel("Score", fontsize=13)
@@ -229,13 +187,9 @@ def plot_sensitivity_specificity_bars(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 5. Metrics overview (radar chart)
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_metrics_radar(
     metrics: dict[str, float],
     save_path: str,
@@ -243,18 +197,15 @@ def plot_metrics_radar(
 ) -> None:
     """Radar chart showing a snapshot of all metrics."""
     _ensure_dir(save_path)
-    keys = [k for k in metrics if isinstance(metrics[k], (int, float))
+    keys = [k for k in metrics if isinstance(metrics[k], int | float)
             and k != "loss"]
     values = [metrics[k] for k in keys]
-
     if not keys:
         return
-
     n = len(keys)
     angles = np.linspace(0, 2 * np.pi, n, endpoint=False).tolist()
     values += values[:1]
     angles += angles[:1]
-
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"projection": "polar"})
     ax.fill(angles, values, alpha=0.25)
     ax.plot(angles, values, linewidth=2)
@@ -265,13 +216,9 @@ def plot_metrics_radar(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 6. Combined final metrics bar comparison
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_final_metrics_bars(
     metrics: dict[str, float],
     save_path: str,
@@ -279,16 +226,14 @@ def plot_final_metrics_bars(
 ) -> None:
     """Horizontal bar chart of final evaluation metrics."""
     _ensure_dir(save_path)
-    keys = [k for k in metrics if isinstance(metrics[k], (int, float))
+    keys = [k for k in metrics if isinstance(metrics[k], int | float)
             and k not in ("loss", "epoch")]
     values = [metrics[k] for k in keys]
-
     if not keys:
         return
-
     fig, ax = plt.subplots(figsize=(9, max(4, len(keys) * 0.5)))
     bars = ax.barh(keys, values, color=COLORS[:len(keys)], alpha=0.85)
-    for bar, val in zip(bars, values):
+    for bar, val in zip(bars, values, strict=False):
         ax.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2,
                 f"{val:.4f}", va="center", fontsize=10)
     ax.set_xlim(0, 1.15)
@@ -298,13 +243,9 @@ def plot_final_metrics_bars(
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-
-
 # ════════════════════════════════════════════════════════════════════════════
 # 7. Master training plot (all-in-one figure)
 # ════════════════════════════════════════════════════════════════════════════
-
-
 def plot_training_summary(
     train_losses: list[float],
     val_losses: list[float],
@@ -314,7 +255,6 @@ def plot_training_summary(
 ) -> None:
     """Generate a multi-panel summary figure for a full training run."""
     _ensure_dir(save_path)
-
     # Determine sub-plot layout
     if task == "joint":
         n_cols = 3
@@ -325,10 +265,8 @@ def plot_training_summary(
         fig, axes = plt.subplots(1 if task == "seg" else 2, n_cols,
                                  figsize=(14, 5), squeeze=False)
         axes = axes.flatten()
-
     idx = 0
     epochs = range(1, len(train_losses) + 1)
-
     # Panel 1: Loss
     axes[idx].plot(epochs, train_losses, "o-", label="Train Loss", linewidth=2)
     axes[idx].plot(epochs, val_losses, "s--", label="Val Loss", linewidth=2)
@@ -338,7 +276,6 @@ def plot_training_summary(
     axes[idx].legend(fontsize=9)
     axes[idx].grid(True, alpha=0.3)
     idx += 1
-
     # Panel 2: Segmentation metrics (if applicable)
     if task in ("seg", "joint"):
         axes[idx].plot(epochs, val_history.get("dice", []), "o-", label="Dice", linewidth=2)
@@ -350,7 +287,6 @@ def plot_training_summary(
         axes[idx].set_ylim(0, 1.05)
         axes[idx].grid(True, alpha=0.3)
         idx += 1
-
     # Panel 3: Classification metrics (if applicable)
     if task in ("cls", "joint"):
         axes[idx].plot(epochs, val_history.get("acc", []), "o-", label="Acc", linewidth=2)
@@ -364,7 +300,6 @@ def plot_training_summary(
         axes[idx].set_ylim(0, 1.05)
         axes[idx].grid(True, alpha=0.3)
         idx += 1
-
     # Panel 4: ROC-AUC (if available)
     if val_history.get("roc_auc", []):
         axes[idx].plot(epochs, val_history["roc_auc"], "o-", color="purple",
@@ -376,11 +311,9 @@ def plot_training_summary(
         axes[idx].set_ylim(0, 1.05)
         axes[idx].grid(True, alpha=0.3)
         idx += 1
-
     # Hide unused subplots
     for j in range(idx, len(axes)):
         axes[j].set_visible(False)
-
     fig.suptitle(f"Training Summary — {task.upper()}", fontsize=16, fontweight="bold", y=1.02)
     fig.tight_layout()
     fig.savefig(save_path, dpi=150, bbox_inches="tight")

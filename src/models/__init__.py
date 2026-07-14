@@ -1,18 +1,13 @@
 """Model registry — maps model names to constructors."""
-
 from __future__ import annotations
-
-from src.models.unet import UNet
 from src.models.attention_unet import AttentionUNet
 from src.models.bifpn_unet import BiFPNUNet
-
+from src.models.unet import UNet
 MODEL_REGISTRY: dict[str, type] = {
     "unet": UNet,
     "attunet": AttentionUNet,
     "bifpn": BiFPNUNet,
 }
-
-
 def create_model(
     name: str,
     in_channels: int = 3,

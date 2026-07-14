@@ -1,26 +1,18 @@
 """Loss functions for segmentation and joint tasks.
-
 - ``DiceLoss`` — soft Dice loss for binary / multi-class segmentation.
 - ``CombinedJointLoss`` — weighted sum of Dice + CrossEntropy for joint training.
 """
-
 from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-
 class DiceLoss(nn.Module):
     """Soft Dice loss (1 - Dice coefficient).
-
     Supports both binary (sigmoid) and multi-class (softmax) segmentation.
     """
-
     def __init__(self, eps: float = 1e-6) -> None:
         super().__init__()
         self.eps = eps
-
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         if pred.shape[1] > 1:
             # Multi-class
@@ -31,16 +23,12 @@ class DiceLoss(nn.Module):
             target = target_one_hot
         else:
             pred = torch.sigmoid(pred)
-
         inter = (pred * target).sum(dim=(2, 3))
         union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
         dice = (2.0 * inter + self.eps) / (union + self.eps)
         return (1 - dice).mean()
-
-
 class CombinedJointLoss(nn.Module):
     """Weighted combination of DiceLoss + CrossEntropyLoss for joint training.
-
     Parameters
     ----------
     seg_weight : float
@@ -48,14 +36,12 @@ class CombinedJointLoss(nn.Module):
     cls_weight : float
         Weight for the classification (CrossEntropy) loss component.
     """
-
     def __init__(self, seg_weight: float = 1.0, cls_weight: float = 1.0) -> None:
         super().__init__()
         self.seg_weight = seg_weight
         self.cls_weight = cls_weight
         self.dice_loss = DiceLoss()
         self.ce_loss = nn.CrossEntropyLoss()
-
     def forward(
         self,
         seg_out: torch.Tensor,

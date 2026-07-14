@@ -1,0 +1,83 @@
+﻿[
+    {
+        "Id":  1,
+        "Name":  "SEG  / UNet",
+        "Task":  "seg",
+        "Model":  "unet",
+        "Epochs":  40,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  2,
+        "Name":  "SEG  / AttUNet",
+        "Task":  "seg",
+        "Model":  "attunet",
+        "Epochs":  40,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  3,
+        "Name":  "SEG  / BiFPN",
+        "Task":  "seg",
+        "Model":  "bifpn",
+        "Epochs":  40,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  4,
+        "Name":  "CLS  / UNet",
+        "Task":  "cls",
+        "Model":  "unet",
+        "Epochs":  25,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  5,
+        "Name":  "CLS  / AttUNet",
+        "Task":  "cls",
+        "Model":  "attunet",
+        "Epochs":  25,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  6,
+        "Name":  "CLS  / BiFPN",
+        "Task":  "cls",
+        "Model":  "bifpn",
+        "Epochs":  25,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  7,
+        "Name":  "JOINT/ UNet",
+        "Task":  "joint",
+        "Model":  "unet",
+        "Epochs":  50,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  8,
+        "Name":  "JOINT/ AttUNet",
+        "Task":  "joint",
+        "Model":  "attunet",
+        "Epochs":  50,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    },
+    {
+        "Id":  9,
+        "Name":  "JOINT/ BiFPN",
+        "Task":  "joint",
+        "Model":  "bifpn",
+        "Epochs":  50,
+        "Status":  "done",
+        "Msg":  "checkpoint found"
+    }
+]

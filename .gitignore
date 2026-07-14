@@ -8,29 +8,27 @@ build/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
-
 # ── Virtual environment ───────────────────────────────────────────────────
 .venv/
 venv/
 env/
-
 # ── IDE ───────────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
-
-# ── Ignore project data and outputs ───────────────────────────────────────
+# ── Project data and outputs ─────────────────────────────────────────────
 brisc2025/
 outputs/
 reports/
 results/
 runs/
-
+exports/
 # ── Checkpoints ───────────────────────────────────────────────────────────
 *.ckpt
-
 # ── OS ────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+# ── Jupyter ───────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
